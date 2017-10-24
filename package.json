@@ -1,0 +1,31 @@
+{
+  "name": "messenger_bot",
+  "version": "1.0.0",
+  "description": "Messenger virtual assistant",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/edgarosovel/messenger_bot.git"
+  },
+  "keywords": [
+    "bot",
+    "messenger",
+    "assistant"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/edgarosovel/messenger_bot/issues"
+  },
+  "homepage": "https://github.com/edgarosovel/messenger_bot#readme",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3",
+    "request": "^2.81.0",
+    "winston": "^2.3.1"
+  }
+}
