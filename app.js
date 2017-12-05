@@ -6,6 +6,8 @@ const bodyParser = require('body-parser');
 const log = require('./libs/log');
 const fb = require('./libs/facebook_api');
 const db = require('./libs/db');
+const gato = require('./libs/gato/juego_gato');
+
 
 log.info('||||||||  Lenna is alive |||||||||')
 let app = express();
@@ -38,13 +40,23 @@ app.post('/messenger_bot', function (req, res) {
       var timeOfEvent = entry.time;
       // Iterate over each messaging event
       entry.messaging.forEach(function(event) {
-        if (event.message) {
-          handleMessage(event);
-        }else if (event.postback) {
-          handlePostback(event);  
-        }else {
-          log.warning("Webhook received unknown event: ", event);
-        }
+        // if user not in database, save and send info/greetings
+        db.select({_id:event.sender.id}, 'users', (err, user) =>{
+          if (!err){
+            if(user!=null){
+              if (event.message) {
+                handleMessage(event, user);
+              }else if (event.postback) {
+                //handlePostback(event);  
+              }else {
+                log.warning("Webhook received unknown event: ", event);
+              }
+            }else{
+              db.insert({_id:event.sender.id}, 'users', ()=>{});
+              fb.sendTextMessage(event.sender.id, `Hola, mi nombre es Lenna y seré tu asistente personal`);
+            }
+          }
+        })
       });
     });
     res.sendStatus(200); //mandar dentro de 20 segundos, confirmando recepcion
@@ -52,25 +64,30 @@ app.post('/messenger_bot', function (req, res) {
 });
 
 //Cuando llega un mensaje de texto
-function handleMessage(event) {
-  var senderID = event.sender.id;
-  var recipientID = event.recipient.id;
+function handleMessage(event, user) {
   var timeOfMessage = event.timestamp;
   var message = event.message;
-
-  log.info(`Received message for user ${senderID} and page ${recipientID} at ${timeOfMessage} with message: ${JSON.stringify(message)}`);
-
-  var messageId = message.mid;
+  //log.info(`Received message for user ${senderID} and page ${recipientID} at ${timeOfMessage} with message: ${JSON.stringify(message)}`);
   var messageText = message.text;
+  var quickReply = message.quick_reply;
   var messageAttachments = message.attachments;
 
   if (messageText) {
-    fb.sendTextMessage(senderID, `Mensaje: ${messageText}. Sender ID: ${senderID} Timestamp: ${timeOfMessage}`);
+    if (quickReply){
+      if (/gato/i.test(quickReply.payload)){
+        gato.handler(quickReply.payload, user);
+      }
+    }else{
+      // check kind of intent
+      if (messageText=="gato"){
+        gato.handler("gatointent", user);
+      }
+    }
   } else if (messageAttachments) {
-    fb.sendTextMessage(senderID, "Message with attachment received");
+
   }
 }
 
-function handlePostback() {
+// function handlePostback() {
 
-}
+// }
