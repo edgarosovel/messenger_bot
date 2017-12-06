@@ -16,7 +16,7 @@ function callSendAPI(messageData) {
 
       log.info(`Mensaje con id ${messageId} enviado a ${recipientId}: ${messageData}`);
     } else {
-      log.error(`No se pudo mandar el mensaje: ${messageData}\nResponse: ${response}\nError: ${error}`);
+      log.error(`No se pudo mandar el mensaje: ${messageData}\nResponse: ${response}\nError: ${error} Body:${body}`);
     }
   });  
 }
@@ -52,20 +52,18 @@ module.exports={
         id: recipientId
       },
       message: {
-        attachment: {
-          text: messageText,
-          quick_replies: [{
-              contet_type: "text",
-              title: "Sí",
-              payload: `1${payload}`
-            },
-            {
-              contet_type: "text",
-              title: "No",
-              payload: `0${payload}`
-            }
-          ]
-        }  
+        text: messageText,
+        quick_replies: [{
+            content_type: "text",
+            title: "Sí",
+            payload: `1${payload}`
+          },
+          {
+            content_type: "text",
+            title: "No",
+            payload: `0${payload}`
+          }
+        ] 
       }
     };  
 
@@ -77,15 +75,13 @@ module.exports={
         id: recipientId
       },
       message: {
-        attachment: {
-          text: messageText,
-          quick_replies:[
-            {
-              content_type: "location",
-              payload: payload
-            }
-          ]
-        }  
+        text: messageText,
+        quick_replies:[
+          {
+            content_type: "location",
+            payload: payload
+          }
+        ]  
       }
     };  
 

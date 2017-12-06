@@ -8,8 +8,9 @@ mongo.connect(config.MONGO_URL, function(err, db_) {
 	if (err) {
 		log.error(err);
 		throw err;
+	}else{
+		db = db_;
 	}
-	db = db_;
   })
 
 module.exports = {
@@ -20,7 +21,7 @@ module.exports = {
 	},
 
 	select : (query,tabla,callback) => {
-		db.collection(tabla).findOne(query).toArray(function(err, res) {
+		db.collection(tabla).findOne(query, function(err, res) {
 			return (err) ? callback(err) : callback(false,res);
 		})
 	},

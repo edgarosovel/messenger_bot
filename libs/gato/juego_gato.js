@@ -19,19 +19,19 @@ function handler(option, user){
 	}else if(option == "1gatoplay"){
 		// accepted game
 		check_game_status(user);	
-	}else if(optino == "0gatoplay"){
+	}else if(option == "0gatoplay"){
 		// game not accepted
 	}
 }
 
 function check_game_status(user){
-	if (user.gato.game) // if there is already a game, play
+	if (user.gato && user.gato.game) // if there is already a game, play
 		fb.sendGatoMessage(user._id, `No hemos terminado este juego ${format_board(user.gato.game)}`, get_number_buttons(user.gato.game) );
 	else{ // if the is no ongoing game, make one
 		gato = {game:[0,0,0,0,0,0,0,0,0], lines:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0}};
 		db.update({_id:user._id}, {gato:gato}, `users` ,(err)=>{
 			if (!err){
-				fb.sendGatoMessage(user._id, `¡A jugar! ${format_board(gato.game)}`, get_number_buttons(gato.game) );
+				fb.sendGatoMessage(user._id, `¡A jugar! Tú empiezas.${format_board(gato.game)}`, get_number_buttons(gato.game) );
 			}
 		})
 	}
@@ -40,14 +40,15 @@ function check_game_status(user){
 function game(number, user){
 	if (user.gato.game) {// game should exist
 		gato = user.gato;
+		win=false;
 		if (number!=null) {
 			if (gato.game[number-1] == 0) { //if square not played
-				var {gato, win} = handle_move(gato, number, 1); // user move. 1 means X
+				[gato, win] = handle_move(gato, number, 1); // user move. 1 means X
 				if (win){
 					//user won
 					db.update({_id:user._id}, {gato:""}, `users` ,(err)=>{
 	    				if (!err){
-	    					fb.sendConfirmationMessage(user._id, `¡Felicidades, ganaste! ¿Deseas jugar de nuevo?`, `gatoplay`);
+	    					fb.sendConfirmationMessage(user._id, `¡Felicidades, ganaste! ${format_board(gato.game)}\n¿Deseas jugar de nuevo?`, `gatoplay`);
 	    				}
 	    			})	
 				}else if (Object.keys(gato.lines).length==0) {
@@ -58,12 +59,12 @@ function game(number, user){
 	    				}
 	    			})
 				}else{
-					var {gato, win} = bot_response(gato);
+					[gato, win, casilla_bot] = bot_response(gato);
 					if (win) {
 						// bot won
 						db.update({_id:user._id}, {gato:""}, `users` ,(err)=>{
 		    				if (!err){
-		    					fb.sendConfirmationMessage(user._id, `¡Ja, te gané! ¿Quieres la revancha?`, `gatoplay`);
+		    					fb.sendConfirmationMessage(user._id, `¡Ja, te gané! ${format_board(gato.game)}\n¿Quieres la revancha?`, `gatoplay`);
 		    				}
 		    			})
 					}else if (Object.keys(gato.lines).length==0) {
@@ -72,7 +73,7 @@ function game(number, user){
 						db.update({_id:user._id}, {gato:gato}, `users` ,(err)=>{
 		    				if (!err){
 		    					var board = format_board(gato.game);
-		    					fb.sendGatoMessage(user._id, `${board}`, get_number_buttons(gato.game));
+		    					fb.sendGatoMessage(user._id, `Escojo la casilla ${emo[casilla_bot]} ${board}`, get_number_buttons(gato.game));
 		    				}
 		    			})
 					}	
@@ -105,44 +106,47 @@ function handle_move(gato, number, mark){
 		}
 	}
 
-	return {gato:gato, win:win};
+	return [gato, win];
 }
 
 function bot_response(gato){
 	// play on line with -2 to win
 	// if not, play on line with highest number
 	// if no high number, play on lowest number
-	win = false;
+	to_win = null;
 	highest = 0;
 	lowest = 0;
 
 	for (l in gato.lines){
 		if (gato.lines[l] == -2){
-			to_win = gato.lines[l];
+			to_win = l;
 		}else if (gato.lines[l] > highest) {
 			highest = gato.lines[l];
+			highest_line = l;
 		}else if (gato.lines[l] < lowest){
 			lowest = gato.lines[l];
+			lowest_line = l;
 		}else{
-			line_to_play = gato.lines[l];
+			line_to_play = l;
 		}
 	}
 
-	line_to_play = (to_win) ? to_win : (highest > 0) ? highest : (lowest < 0) ? lowest : line_to_play;
+	line_to_play = (to_win!=null) ? to_win : (highest > 0) ? highest_line : (lowest < 0) ? lowest_line : line_to_play;
 
 	for (n of lines.squares[line_to_play]){
 		if (gato.game[n-1] == 0) {
-			number_to_play = gato.game[n-1];
+			number_to_play = n; // handle move takes care of the -1
 			break;
 		}
 	}
-
-	return handle_move(gato, number_to_play, -1);
+	[gato, win] = handle_move(gato, number_to_play, -1);
+	return [gato, win, number_to_play];
 }
 
 function get_number_buttons(game){
 	numbers = [];
 	for (i in game) {
+		i = Number(i);
 		if (game[i]==0) {
 			numbers.push({
 				content_type: `text`,
