@@ -17,19 +17,31 @@ module.exports = {
 	insert : (data,tabla,callback) => {
 		db.collection(tabla).insertOne(data, function(err, res) {
 			return (err) ? callback(err) : callback(false);
-		})
+		});
 	},
 
 	select : (query,tabla,callback) => {
 		db.collection(tabla).findOne(query, function(err, res) {
 			return (err) ? callback(err) : callback(false,res);
-		})
+		});
 	},
 
-	delete : (id,tabla,callback) => {
-		db.collection(tabla).deleteOne({_id:id}, function(err, res) {
+	select_many : (query,tabla,callback) => {
+		db.collection(tabla).find(query).toArray(function(err, res) {
+			return (err) ? callback(err) : callback(false,res);
+		});
+	},
+
+	delete : (where,tabla,callback) => {
+		db.collection(tabla).deleteOne(where, function(err, res) {
 			return (err) ? callback(err) : callback(false);
-		})
+		});
+	},
+
+	delete_many : (where,tabla,callback) => {
+		db.collection(tabla).deleteMany(where, function(err, res) {
+			return (err) ? callback(err) : callback(false);
+		});
 	},
 
 	update : (where,newValues,tabla,callback) => {

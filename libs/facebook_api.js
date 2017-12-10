@@ -33,7 +33,7 @@ module.exports={
     };
     callSendAPI(messageData);
   },
-  sendGatoMessage: function (recipientId, messageText, buttons) {
+  sendButtonsMessage: function (recipientId, messageText, buttons) {
     var messageData = {
       recipient: {
         id: recipientId
@@ -69,7 +69,7 @@ module.exports={
 
     callSendAPI(messageData);
   },
-  askUserLocationMessage: function (recipientId, payload) {
+  askUserLocationMessage: function (recipientId, messageText, payload) {
     var messageData = {
       recipient: {
         id: recipientId

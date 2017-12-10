@@ -6,7 +6,13 @@ const bodyParser = require('body-parser');
 const log = require('./libs/log');
 const fb = require('./libs/facebook_api');
 const db = require('./libs/db');
+//
 const gato = require('./libs/gato/juego_gato');
+const recordatorios = require('./libs/recordatorios');
+const clima = require('./libs/clima');
+const definiciones = require('./libs/definiciones');
+const matEval = require('./libs/matEval');
+const wiki = require('./libs/wikipedia');
 
 
 log.info('||||||||  Lenna is alive |||||||||')
@@ -71,20 +77,70 @@ function handleMessage(event, user) {
   var messageText = message.text;
   var quickReply = message.quick_reply;
   var messageAttachments = message.attachments;
+  if (message.nlp) var nlp = message.nlp.entities
+
+  console.log(message);
 
   if (messageText) {
     if (quickReply){
       if (/gato/i.test(quickReply.payload)){
         gato.handler(quickReply.payload, user);
+      }else if(/^rec/i.test(quickReply.payload)){
+        recordatorios.handler({option:quickReply.payload,user:user});
+      }else if('climalocation' == quickReply.payload){
+        //clima.clima(lat,long, user._id);
       }
     }else{
-      // check kind of intent
-      if (messageText=="gato"){
-        gato.handler("gatointent", user);
+      if (user.changeDate){
+          new_date = nlp.datetime ? nlp.datetime[0].value : undefined;
+          recordatorios.handler({option:'recnewdate', user:user, recordatorio_id:user.changeDate, dateToSend:new_date})
+      }else if(nlp.intent){ // check kind of intent
+        console.log(nlp);
+        switch (nlp.intent[0].value){
+          case 'jugar':
+            gato.handler('gatointent', user);
+          break;
+          case 'clima':
+            clima.ask_location(user._id);
+          break;
+          case 'definir':
+            word = (nlp.wikipedia_search_query) ? nlp.wikipedia_search_query[0].value : undefined;
+            definiciones.definiciones(user._id, word); //no debería ser reminder
+          break;
+          case 'recordatorio':
+            if (nlp.reminder && nlp.datetime)
+              recordatorios.handler({option:'recintent', user:user, message: nlp.reminder[0].value, dateToSend:nlp.datetime[0].value});
+            else 
+              fb.sendTextMessage(user._id, `Necesito que me des un mensaje y una hora/fecha para guardar tu recordatorio`);
+          break;
+          case 'ver':
+            recordatorios.show_recordatorios(user._id, 'recopc');
+          break;
+          case 'cancelar':
+            recordatorios.show_recordatorios(user._id, 'recdel');
+          break;
+          case 'posponer':
+            recordatorios.show_recordatorios(user._id, 'recfec');
+          break;
+          case 'calcular':
+            if(nlp.math_expression)
+              matEval.matEval(user._id, nlp.math_expression[0].value); 
+          break;
+          case 'buscar':
+            query = (nlp.wikipedia_search_query) ? nlp.wikipedia_search_query[0].value : undefined;
+            wikipedia.wiki(user._id, query);
+          break;
+        }
+      }else{
+        fb.sendTextMessage(user._id, `Perdón, no te entendí.`);
       }
     }
   } else if (messageAttachments) {
-
+    if (messageAttachments[0].type == 'location'){
+      lat = messageAttachments[0].payload.coordinates.lat;
+      long = messageAttachments[0].payload.coordinates.long;
+      clima.clima(user._id,lat, long);
+    }
   }
 }
 

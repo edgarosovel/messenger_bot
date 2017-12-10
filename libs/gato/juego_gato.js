@@ -15,23 +15,25 @@ function handler(option, user){
 		game(number, user)
 	}else if(option == "gatointent"){
 		// user may want to play
-		fb.sendConfirmationMessage(user._id, `¡Juguemos gato!. ¿Aceptas el reto?`, `gatoplay`);
+		//fb.sendConfirmationMessage(user._id, `¡Juguemos gato! ¿Aceptas el reto?`, `gatoplay`);
+		check_game_status(user);
 	}else if(option == "1gatoplay"){
 		// accepted game
 		check_game_status(user);	
 	}else if(option == "0gatoplay"){
 		// game not accepted
+		fb.sendTextMessage(user._id, `🐔🐔🐔`);
 	}
 }
 
 function check_game_status(user){
 	if (user.gato && user.gato.game) // if there is already a game, play
-		fb.sendGatoMessage(user._id, `No hemos terminado este juego ${format_board(user.gato.game)}`, get_number_buttons(user.gato.game) );
+		fb.sendButtonsMessage(user._id, `No hemos terminado este juego ${format_board(user.gato.game)}`, get_number_buttons(user.gato.game) );
 	else{ // if the is no ongoing game, make one
 		gato = {game:[0,0,0,0,0,0,0,0,0], lines:{1:0,2:0,3:0,4:0,5:0,6:0,7:0,8:0}};
 		db.update({_id:user._id}, {gato:gato}, `users` ,(err)=>{
 			if (!err){
-				fb.sendGatoMessage(user._id, `¡A jugar! Tú empiezas.${format_board(gato.game)}`, get_number_buttons(gato.game) );
+				fb.sendButtonsMessage(user._id, `¡A jugar! Tú empiezas.${format_board(gato.game)}`, get_number_buttons(gato.game) );
 			}
 		})
 	}
@@ -55,7 +57,7 @@ function game(number, user){
 					// handle a draw game
 					db.update({_id:user._id}, {gato:""}, `users` ,(err)=>{
 	    				if (!err){
-	    					fb.sendConfirmationMessage(user._id, `Uff, parece que empatamos. ¿Te gustaría jugar de nuevo?`, `gatoplay`);
+	    					fb.sendConfirmationMessage(user._id, `Uff, parece que empatamos.${format_board(gato.game)}\n¿Te gustaría jugar de nuevo?`, `gatoplay`);
 	    				}
 	    			})
 				}else{
@@ -73,14 +75,14 @@ function game(number, user){
 						db.update({_id:user._id}, {gato:gato}, `users` ,(err)=>{
 		    				if (!err){
 		    					var board = format_board(gato.game);
-		    					fb.sendGatoMessage(user._id, `Escojo la casilla ${emo[casilla_bot]} ${board}`, get_number_buttons(gato.game));
+		    					fb.sendButtonsMessage(user._id, `Escojo la casilla ${emo[casilla_bot]} ${board}`, get_number_buttons(gato.game));
 		    				}
 		    			})
 					}	
 				}	
 			} else{
 				//square aleady taken
-				fb.sendGatoMessage(user._id, `¡La casilla ${emo[number]} ya no está disponible! ${format_board(gato.game)}`, get_number_buttons(gato.game) );
+				fb.sendButtonsMessage(user._id, `¡La casilla ${emo[number]} ya no está disponible! ${format_board(gato.game)}`, get_number_buttons(gato.game) );
 			}
 		}else{
 			// not a valid number (null)
