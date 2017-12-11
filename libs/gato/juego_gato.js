@@ -70,6 +70,12 @@ function game(number, user){
 		    				}
 		    			})
 					}else if (Object.keys(gato.lines).length==0) {
+						// handle a draw game
+						db.update({_id:user._id}, {gato:""}, `users` ,(err)=>{
+		    				if (!err){
+		    					fb.sendConfirmationMessage(user._id, `Uff, parece que empatamos.${format_board(gato.game)}\n¿Te gustaría jugar de nuevo?`, `gatoplay`);
+		    				}
+		    			})
 					}else{
 						//game continues
 						db.update({_id:user._id}, {gato:gato}, `users` ,(err)=>{

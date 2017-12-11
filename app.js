@@ -12,7 +12,7 @@ const recordatorios = require('./libs/recordatorios');
 const clima = require('./libs/clima');
 const definiciones = require('./libs/definiciones');
 const matEval = require('./libs/matEval');
-const wiki = require('./libs/wikipedia');
+const wikipedia = require('./libs/wikipedia');
 
 
 log.info('||||||||  Lenna is alive |||||||||')
@@ -59,7 +59,7 @@ app.post('/messenger_bot', function (req, res) {
               }
             }else{
               db.insert({_id:event.sender.id}, 'users', ()=>{});
-              fb.sendTextMessage(event.sender.id, `Hola, mi nombre es Lenna y seré tu asistente personal`);
+              fb.sendTextMessage(event.sender.id, `Hola 👋, mi nombre es Lenna y seré tu asistente personal.\nEstas son algunas de las cosas que puedo hacer por ti:\n\n🔹Hacer cáluclos matemáticos simples.\n🔹Jugar el clásico juego de "gato".\n🔹Informarte del clima según tu ubicación.\n🔹Darte el significado de palabras.\n🔹Buscar información en Wikipedia.\n🔹Agendar recordatorios para mandarte un mensaje en la fecha y hora que me digas.`);
             }
           }
         })
@@ -130,16 +130,22 @@ function handleMessage(event, user) {
             query = (nlp.wikipedia_search_query) ? nlp.wikipedia_search_query[0].value : undefined;
             wikipedia.wiki(user._id, query);
           break;
+          case 'ayuda':
+            fb.sendTextMessage(user._id, `Estas son algunas de las cosas que puedo hacer por ti:\n\n🔹Hacer cáluclos matemáticos simples.\n🔹Jugar el clásico juego de "gato".\n🔹Informarte del clima según tu ubicación.\n🔹Darte el significado de palabras.\n🔹Buscar información en Wikipedia.\n🔹Agendar recordatorios para mandarte un mensaje en la fecha y hora que me digas.\n\nHecho con 💙 por: Edgar Osornio Velázquez, Teo Carlos Sánchez Balderas y Jorge Maya Moreno`);
+          break;
         }
       }else{
-        fb.sendTextMessage(user._id, `Perdón, no te entendí.`);
+        fb.sendTextMessage(user._id, `Perdón, no te entendí. Si necesitas ayuda, solo escribe "ayuda".`);
       }
     }
   } else if (messageAttachments) {
     if (messageAttachments[0].type == 'location'){
+      console.log(messageAttachments[0].payload);
       lat = messageAttachments[0].payload.coordinates.lat;
       long = messageAttachments[0].payload.coordinates.long;
-      clima.clima(user._id,lat, long);
+      if (user.useLocationFor=='clima'){
+        clima.clima(user._id,lat, long);
+      }
     }
   }
 }

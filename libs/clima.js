@@ -1,7 +1,9 @@
 const fb = require(`./facebook_api`);
+const db = require(`./db`);
 var request = require('request');
 
 function ask_location(user_id){
+  db.update({_id:user_id}, {useLocationFor:'clima'},`users`,(e,r)=>{});
   fb.askUserLocationMessage(user_id,`Para informarte sobre el clima necesito que compartas conmigo tu ubicación.`,`climalocation`);
 }
 
