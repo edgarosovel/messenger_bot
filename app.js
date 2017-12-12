@@ -13,6 +13,7 @@ const clima = require('./libs/clima');
 const definiciones = require('./libs/definiciones');
 const matEval = require('./libs/matEval');
 const wikipedia = require('./libs/wikipedia');
+const trafico = require('./libs/trafico');
 
 
 log.info('||||||||  Lenna is alive |||||||||')
@@ -59,7 +60,7 @@ app.post('/messenger_bot', function (req, res) {
               }
             }else{
               db.insert({_id:event.sender.id}, 'users', ()=>{});
-              fb.sendTextMessage(event.sender.id, `Hola 👋, mi nombre es Lenna y seré tu asistente personal.\nEstas son algunas de las cosas que puedo hacer por ti:\n\n🔹Hacer cáluclos matemáticos simples.\n🔹Jugar el clásico juego de "gato".\n🔹Informarte del clima según tu ubicación.\n🔹Darte el significado de palabras.\n🔹Buscar información en Wikipedia.\n🔹Agendar recordatorios para mandarte un mensaje en la fecha y hora que me digas.`);
+              info(event.sender.id);
             }
           }
         })
@@ -68,6 +69,11 @@ app.post('/messenger_bot', function (req, res) {
     res.sendStatus(200); //mandar dentro de 20 segundos, confirmando recepcion
   }
 });
+function info(user_id){
+  fb.sendTextMessage(user_id, `Estas son algunas de las cosas que puedo hacer por ti:\n\n🔹Cálculos matemáticos. (Ej. Calcula 2+2)\n🔹Jugar gato. (Ej. Quiero jugar gato)\n🔹Informarte del clima según tu ubicación. (Ej. ¿Cómo está el clima?)\n🔹Darte el tiempo que tomaría ir de un lugar a otro (Ej. ¿Cómo está el tráfico?)\n🔹Dar el significado de palabras. (Ej. Define manzana)`);
+  fb.sendTextMessage(user_id, '🔹Buscar en Wikipedia. (Ej. ¿Quién es John Mayer?)\n🔹Agendar recordatorios para mandarte un mensaje en la fecha y hora que me digas. (Ej. Recuérdame ir al super en 30 minutos)\n🔹Ver tus recordatorios. (Ej. ¿Qué recordatorios tengo?)\n🔹Borrar recordatorios (Ej. Quiero borrar un recordatorio)\n🔹Modificar/posponer recordatorios (Ej. Quiero modificar un recordatorio)');
+  //fb.sendTextMessage(user_id, 'Hecho con 💙 por: Edgar Osornio Velázquez, Teo Carlos Sánchez Balderas y Jorge Maya Moreno');
+}
 
 //Cuando llega un mensaje de texto
 function handleMessage(event, user) {
@@ -104,8 +110,8 @@ function handleMessage(event, user) {
             clima.ask_location(user._id);
           break;
           case 'definir':
-            word = (nlp.wikipedia_search_query) ? nlp.wikipedia_search_query[0].value : undefined;
-            definiciones.definiciones(user._id, word); //no debería ser reminder
+            word = (nlp.wikipedia_search_query) ? nlp.wikipedia_search_query[0].value : (nlp.math_expression) ? nlp.math_expression[0].value : undefined;
+            definiciones.definiciones(user._id, word); //no debería ser math pero wit.ai es cagada
           break;
           case 'recordatorio':
             if (nlp.reminder && nlp.datetime)
@@ -127,11 +133,17 @@ function handleMessage(event, user) {
               matEval.matEval(user._id, nlp.math_expression[0].value); 
           break;
           case 'buscar':
-            query = (nlp.wikipedia_search_query) ? nlp.wikipedia_search_query[0].value : undefined;
+            query = (nlp.wikipedia_search_query) ? nlp.wikipedia_search_query[0].value : (nlp.math_expression) ? nlp.math_expression[0].value :undefined;
             wikipedia.wiki(user._id, query);
           break;
+          case 'trafico':
+            trafico.ask_location_from(user._id);
+          break;
           case 'ayuda':
-            fb.sendTextMessage(user._id, `Estas son algunas de las cosas que puedo hacer por ti:\n\n🔹Hacer cáluclos matemáticos simples.\n🔹Jugar el clásico juego de "gato".\n🔹Informarte del clima según tu ubicación.\n🔹Darte el significado de palabras.\n🔹Buscar información en Wikipedia.\n🔹Agendar recordatorios para mandarte un mensaje en la fecha y hora que me digas.\n\nHecho con 💙 por: Edgar Osornio Velázquez, Teo Carlos Sánchez Balderas y Jorge Maya Moreno`);
+            info(user._id);
+          break;
+          case 'saludo':
+            fb.sendTextMessage(user._id, '👋🤖👋');
           break;
         }
       }else{
@@ -144,7 +156,14 @@ function handleMessage(event, user) {
       lat = messageAttachments[0].payload.coordinates.lat;
       long = messageAttachments[0].payload.coordinates.long;
       if (user.useLocationFor=='clima'){
-        clima.clima(user._id,lat, long);
+        clima.clima(user._id,lat,long);
+      }else if(user.useLocationFor=='traficofrom'){
+        db.update({_id:user._id}, {location:{lat:lat, long:long}},`users`,(e,r)=>{
+          if(!e)trafico.ask_location_to(user._id);
+          else fb.sendTextMessage(user._id, 'Ocurrió un error.');
+        });  
+      }else if(user.useLocationFor=='traficoto'){
+        trafico.trafico(user._id, user.location.lat, user.location.long,lat,long);
       }
     }
   }
