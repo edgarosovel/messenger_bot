@@ -83,9 +83,7 @@ function handleMessage(event, user) {
   var messageText = message.text;
   var quickReply = message.quick_reply;
   var messageAttachments = message.attachments;
-  if (message.nlp) var nlp = message.nlp.entities
-
-  console.log(message);
+  if (message.nlp) var nlp = message.nlp.entities;
 
   if (messageText) {
     if (quickReply){
@@ -114,10 +112,9 @@ function handleMessage(event, user) {
             definiciones.definiciones(user._id, word); //no debería ser math pero wit.ai es cagada
           break;
           case 'recordatorio':
-            if (nlp.reminder && nlp.datetime)
-              recordatorios.handler({option:'recintent', user:user, message: nlp.reminder[0].value, dateToSend:nlp.datetime[0].value});
-            else 
-              fb.sendTextMessage(user._id, `Necesito que me des un mensaje y una hora/fecha para guardar tu recordatorio`);
+            msj = (nlp.reminder) ? nlp.reminder[0].value : undefined;
+            date = (nlp.datetime) ? nlp.datetime[0].value : undefined;
+            recordatorios.handler({option:'recintent', user:user, message:msj, dateToSend:date});
           break;
           case 'ver':
             recordatorios.show_recordatorios(user._id, 'recopc');
@@ -129,8 +126,8 @@ function handleMessage(event, user) {
             recordatorios.show_recordatorios(user._id, 'recfec');
           break;
           case 'calcular':
-            if(nlp.math_expression)
-              matEval.matEval(user._id, nlp.math_expression[0].value); 
+            expresion = (nlp.math_expression) ? nlp.math_expression[0].value : undefined;
+            matEval.matEval(user._id, expresion); 
           break;
           case 'buscar':
             query = (nlp.wikipedia_search_query) ? nlp.wikipedia_search_query[0].value : (nlp.math_expression) ? nlp.math_expression[0].value :undefined;

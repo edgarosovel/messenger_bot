@@ -44,10 +44,13 @@ function format_date(date){
 	date = new Date(date);
 	meses = {1:'Enero', 2:'Febrero', 3:'Marzo', 4:'Abril', 5:'Mayo', 6:'Junio', 7:'Julio', 8:'Agosto', 9:'Septiembre', 10:'Octubre', 11:'Noviembre', 12:'Diciembre'};
 	dias = {1:'Lunes', 2:'Martes', 3:'Miércoles', 4:'Jueves', 5:'Viernes', 6:'Sábado', 0:'Domingo'};
-	return `${dias[date.getDay()]} ${date.getDate()} de ${meses[Number(date.getMonth())+1]} de ${date.getFullYear()} a las ${date.getHours()}:${date.getMinutes()}`;
+	min = (date.getMinutes().toString().length==2) ? date.getMinutes().toString() : `0${date.getMinutes().toString()}`;
+	return `${dias[date.getDay()]} ${date.getDate()} de ${meses[Number(date.getMonth())+1]} de ${date.getFullYear()} a las ${date.getHours()}:${min}`;
 }
 
 function save_recordatorio(user_id, message, dateToSend){
+	if(!dateToSend)return fb.sendTextMessage(user_id, `No escribiste una hora válida`);
+	if(!message)return fb.sendTextMessage(user_id, `No escribiste un mensaje válido`);
 	dateToSend = new Date(dateToSend);
 	if(dateToSend > Date.now()){
 		db.insert({user_id:user_id, message:message, dateToSend:dateToSend}, `recordatorios`, (err,res)=>{

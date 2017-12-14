@@ -6,6 +6,7 @@ function matEval(user_id, expresion){
 	// m = reg.exec(mensaje);
 	// if (!m) return fb.sendTextMessage(user_id,"Parece que lo que escribiste no es una expresión matemática.");
 	// expresion = m[0];
+	if(!expresion) return fb.sendTextMessage(user_id,"Parece que lo que escribiste no es una expresión matemática.");
 	if(reg.test(expresion)){
 		try{
 			tmp = expresion;
