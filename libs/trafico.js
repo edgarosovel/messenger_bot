@@ -9,10 +9,14 @@ function ask_location_from(user_id){
   });
 }
 
-function ask_location_to(user_id){
-  db.update({_id:user_id}, {useLocationFor:'traficoto'},`users`,(e,r)=>{
-    if(!e)fb.askUserLocationMessage(user_id,`¿Hacia dónde te diriges?`,`traficolocation`);
-    else fb.sendTextMessage(user_id, 'Ocurrió un error.');
+function ask_location_to(user_id, latOrig, longOrig){
+  db.update({_id:user._id}, {location:{lat:latOrig, long:longOrig}},`users`,(e,r)=>{
+    if(!e){
+      db.update({_id:user_id}, {useLocationFor:'traficoto'},`users`,(e,r)=>{
+        if(!e)fb.askUserLocationMessage(user_id,`¿Hacia dónde te diriges?`,`traficolocation`);
+        else fb.sendTextMessage(user_id, 'Ocurrió un error.');
+      });
+    }else fb.sendTextMessage(user_id, 'Ocurrió un error.');
   });
 }
 

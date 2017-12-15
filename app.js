@@ -91,15 +91,13 @@ function handleMessage(event, user) {
         gato.handler(quickReply.payload, user);
       }else if(/^rec/i.test(quickReply.payload)){
         recordatorios.handler({option:quickReply.payload,user:user});
-      }else if('climalocation' == quickReply.payload){
-        //clima.clima(lat,long, user._id);
       }
     }else{
       if (user.changeDate){
           new_date = nlp.datetime ? nlp.datetime[0].value : undefined;
           recordatorios.handler({option:'recnewdate', user:user, recordatorio_id:user.changeDate, dateToSend:new_date})
       }else if(nlp.intent){ // check kind of intent
-        console.log(nlp);
+        //console.log(nlp);
         switch (nlp.intent[0].value){
           case 'jugar':
             gato.handler('gatointent', user);
@@ -149,16 +147,13 @@ function handleMessage(event, user) {
     }
   } else if (messageAttachments) {
     if (messageAttachments[0].type == 'location'){
-      console.log(messageAttachments[0].payload);
+      //console.log(messageAttachments[0].payload);
       lat = messageAttachments[0].payload.coordinates.lat;
       long = messageAttachments[0].payload.coordinates.long;
       if (user.useLocationFor=='clima'){
         clima.clima(user._id,lat,long);
       }else if(user.useLocationFor=='traficofrom'){
-        db.update({_id:user._id}, {location:{lat:lat, long:long}},`users`,(e,r)=>{
-          if(!e)trafico.ask_location_to(user._id);
-          else fb.sendTextMessage(user._id, 'Ocurrió un error.');
-        });  
+        trafico.ask_location_to(user._id); 
       }else if(user.useLocationFor=='traficoto'){
         trafico.trafico(user._id, user.location.lat, user.location.long,lat,long);
       }

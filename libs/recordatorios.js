@@ -70,7 +70,7 @@ function show_recordatorios(user_id, opt){
 	'Estos son tus recordatorios. Para modificar la fecha de alguno, oprime el botón que tenga su ID.' 
 	db.select_many({user_id:user_id}, `recordatorios`, (err, res)=>{
 		if(!err){
-			if(res){
+			if(res[0]){
 				i=1;
 				botones = [{
 						content_type: `text`,
