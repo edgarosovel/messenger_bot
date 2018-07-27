@@ -24,7 +24,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 //Servidor que se mantiene escuchando los mensajes
-app.listen(1111, ()=>console.log('Listening :1111/messenger_bot'));
+app.listen( process.env.PORT || 1111, ()=>console.log('Listening /messenger_bot'));
 
 app.get('/messenger_bot', function(req, res) { //webhook validation
   if (req.query['hub.mode'] === 'subscribe' &&
