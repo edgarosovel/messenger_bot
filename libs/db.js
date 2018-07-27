@@ -1,15 +1,14 @@
-var mongo = require('mongodb').MongoClient,
-  assert = require('assert');
+var mongo = require('mongodb').MongoClient;
 const config = require(`${__dirname}/../config`);
 log = require('winston');
 var db;
 
-mongo.connect(config.MONGO_URL, function(err, db_) {
+mongo.connect(config.MONGO_URL, function(err, client) {
 	if (err) {
 		log.error(err);
 		throw err;
 	}else{
-		db = db_;
+		db = client.db('lenna');
 	}
   })
 
