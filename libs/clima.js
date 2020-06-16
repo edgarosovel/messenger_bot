@@ -89,7 +89,7 @@ function send_weather_service_info(user_id) {
             try {
                 data = JSON.parse(body);
                 msg = format_weather_service_message(data);
-                fb.sendTextMessage(user_id, response);
+                fb.sendTextMessage(user_id, msg);
             } catch (err) {
                 fb.sendTextMessage(
                     user_id,
