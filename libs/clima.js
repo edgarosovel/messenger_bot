@@ -74,7 +74,7 @@ function send_weather_service_info(user_id) {
     var options = {
         method: "GET",
         url: "https://community-open-weather-map.p.rapidapi.com/forecast",
-        qs: { q: "hamburg%2Cde", units: "metric", lang: "en" },
+        qs: { q: "hamburg", units: "metric", lang: "en" },
         headers: {
             "x-rapidapi-host": "community-open-weather-map.p.rapidapi.com",
             "x-rapidapi-key":
@@ -87,7 +87,6 @@ function send_weather_service_info(user_id) {
         if (!err) {
             try {
                 data = JSON.parse(body);
-                fb.sendTextMessage(user_id, "ok");
                 msg = format_weather_service_message(data);
                 fb.sendTextMessage(user_id, msg);
             } catch (err) {
@@ -107,6 +106,7 @@ function send_weather_service_info(user_id) {
 }
 
 function format_weather_service_message(data) {
+    console.log(data);
     let city_name = data.city.name;
     let city_timezone = data.city.timezone;
     let current_dt = data.list[0].dt;
