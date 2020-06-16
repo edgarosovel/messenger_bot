@@ -88,6 +88,8 @@ function send_weather_service_info(user_id) {
         if (!err) {
             try {
                 data = JSON.parse(body);
+                console.log("ok");
+                fb.sendTextMessage(user_id, "ok");
                 msg = format_weather_service_message(data);
                 fb.sendTextMessage(user_id, msg);
             } catch (err) {
