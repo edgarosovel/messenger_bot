@@ -110,7 +110,7 @@ function handleMessage(event, user) {
 
     if (messageText) {
         if (messageText == "subscribeWeatherService") {
-            clima.subscribe_weather_service_intent(user._id);
+            clima.subscribe_weather_service(user._id);
         }
         if (quickReply) {
             if (/gato/i.test(quickReply.payload)) {

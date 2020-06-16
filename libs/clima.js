@@ -52,50 +52,28 @@ function clima(user_id, lat, long) {
     );
 }
 
-function subscribe_weather_service_intent(user_id) {
-    ask_location_weather_service(user_id);
-}
-
 function send_weather_service_messages(fireDate) {
     console.log(`weather service fire date is ${fireDate}`);
     db.select_many(undefined, `recordatorios`, (err, res) => {
         if (!err) {
             for (r of res) {
-                send_weather_service_info(r.user_id, r.lat, r.long);
+                send_weather_service_info(r.user_id);
             }
         }
     });
 }
 
-function subscribe_weather_service(user_id, lat, long) {
-    db.insert(
-        { user_id: user_id, lat: lat, long: long },
-        `weatherservice`,
-        (err, res) => {
-            if (!err) fb.sendTextMessage(user_id, `Subscribed!`);
-        }
-    );
+function subscribe_weather_service(user_id) {
+    db.insert({ user_id: user_id }, `weatherservice`, (err, res) => {
+        if (!err) fb.sendTextMessage(user_id, `Subscribed!`);
+    });
 }
 
-function ask_location_weather_service(user_id) {
-    db.update(
-        { _id: user_id },
-        { useLocationFor: "weatherservice" },
-        `users`,
-        (e, r) => {}
-    );
-    fb.askUserLocationMessage(
-        user_id,
-        `Share your location with me to subscribe to the weather service.`,
-        `climalocation`
-    );
-}
-
-function send_weather_service_info(user_id, lat, long) {
+function send_weather_service_info(user_id) {
     var options = {
         method: "GET",
         url: "https://community-open-weather-map.p.rapidapi.com/forecast",
-        qs: { units: "metric", lat: lat, lon: long, lang: "en" },
+        qs: { q: "hamburg%2Cde", units: "metric", lang: "en" },
         headers: {
             "x-rapidapi-host": "community-open-weather-map.p.rapidapi.com",
             "x-rapidapi-key":
@@ -161,6 +139,5 @@ module.exports = {
     clima: clima,
     ask_location: ask_location,
     subscribe_weather_service,
-    subscribe_weather_service_intent,
     send_weather_service_messages,
 };
