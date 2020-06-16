@@ -4,7 +4,7 @@ var schedule = require("node-schedule");
 const path = require("path");
 const config = require("./config");
 const bodyParser = require("body-parser");
-const log = require("./libs/log");
+//const log = require("./libs/log");
 const fb = require("./libs/facebook_api");
 const db = require("./libs/db");
 //
@@ -16,7 +16,7 @@ const matEval = require("./libs/matEval");
 const wikipedia = require("./libs/wikipedia");
 const trafico = require("./libs/trafico");
 
-log.info("||||||||  Lenna is alive |||||||||");
+console.log("||||||||  Lenna is alive |||||||||");
 let app = express();
 
 app.use(bodyParser.json());
@@ -66,9 +66,8 @@ app.post("/", function (req, res) {
                             } else if (event.postback) {
                                 //handlePostback(event);
                             } else {
-                                log.warning(
-                                    "Webhook received unknown event: ",
-                                    event
+                                console.log(
+                                    `Webhook received unknown event: ${event}`
                                 );
                             }
                         } else {
@@ -102,7 +101,6 @@ function info(user_id) {
 function handleMessage(event, user) {
     var timeOfMessage = event.timestamp;
     var message = event.message;
-    //log.info(`Received message for user ${senderID} and page ${recipientID} at ${timeOfMessage} with message: ${JSON.stringify(message)}`);
     var messageText = message.text;
     var quickReply = message.quick_reply;
     var messageAttachments = message.attachments;

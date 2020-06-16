@@ -1,11 +1,10 @@
 var mongo = require("mongodb").MongoClient;
 const config = require(`${__dirname}/../config`);
-log = require("winston");
 var db;
 
 mongo.connect(config.MONGO_URL, function (err, client) {
     if (err) {
-        log.error(err);
+        console.log(err);
         throw err;
     } else {
         db = client.db("lenna");
