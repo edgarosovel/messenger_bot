@@ -54,9 +54,8 @@ function clima(user_id, lat, long) {
 
 function send_weather_service_messages(fireDate) {
     console.log(`weather service fire date is ${fireDate}`);
-    db.select_all(`recordatorios`, (err, res) => {
+    db.select_all(`weatherservice`, (err, res) => {
         if (err) console.log(err);
-
         if (!err) {
             for (r of res) {
                 send_weather_service_info(r.user_id);
