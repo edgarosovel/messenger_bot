@@ -1,32 +1,166 @@
 const fb = require(`./facebook_api`);
 const db = require(`./db`);
-var request = require('request');
+var request = require("request");
+var weekday = new Array(7);
+weekday[0] = "Sunday";
+weekday[1] = "Monday";
+weekday[2] = "Tuesday";
+weekday[3] = "Wednesday";
+weekday[4] = "Thursday";
+weekday[5] = "Friday";
+weekday[6] = "Saturday";
 
-function ask_location(user_id){
-  db.update({_id:user_id}, {useLocationFor:'clima'},`users`,(e,r)=>{});
-  fb.askUserLocationMessage(user_id,`Para informarte sobre el clima necesito que compartas conmigo tu ubicación.`,`climalocation`);
+function ask_location(user_id) {
+    db.update(
+        { _id: user_id },
+        { useLocationFor: "clima" },
+        `users`,
+        (e, r) => {}
+    );
+    fb.askUserLocationMessage(
+        user_id,
+        `Para informarte sobre el clima necesito que compartas conmigo tu ubicación.`,
+        `climalocation`
+    );
 }
 
-function clima(user_id,lat,long) {
-  	request({
-      uri: `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=25efee1324d5f5aa1ec2bea01f863448&units=metric&lang=es`,
-  	    method: 'GET'
-  	  }, function (err, res, body) {
-        if (!err){
-  	  		try{
-  	  		  datos = JSON.parse(body);
-            response = `Clima de hoy en ${datos.name}\nEstado: ${datos.weather[0].description}\nTemperatura: ${datos.main.temp}°C \nMínima: ${datos.main.temp_min}°C\nMáxima: ${datos.main.temp_max}°C\nHumedad: ${datos.main.humidity}%`; // http://openweathermap.org/img/w/${datos.weather[0].icon}.png
-  			    fb.sendTextMessage(user_id, response);
-    			}catch(err){
-    				fb.sendTextMessage(user_id, `Tuve un problema para obtener el clima. Una disculpa.`);
-    			}
-        }else{
-          fb.sendTextMessage(user_id, `Tuve un problema para obtener el clima. Una disculpa.`);
+function clima(user_id, lat, long) {
+    request(
+        {
+            uri: `http://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=25efee1324d5f5aa1ec2bea01f863448&units=metric&lang=es`,
+            method: "GET",
+        },
+        function (err, res, body) {
+            if (!err) {
+                try {
+                    datos = JSON.parse(body);
+                    response = `Clima de hoy en ${datos.name}\nEstado: ${datos.weather[0].description}\nTemperatura: ${datos.main.temp}°C \nMínima: ${datos.main.temp_min}°C\nMáxima: ${datos.main.temp_max}°C\nHumedad: ${datos.main.humidity}%`; // http://openweathermap.org/img/w/${datos.weather[0].icon}.png
+                    fb.sendTextMessage(user_id, response);
+                } catch (err) {
+                    fb.sendTextMessage(
+                        user_id,
+                        `Tuve un problema para obtener el clima. Una disculpa.`
+                    );
+                }
+            } else {
+                fb.sendTextMessage(
+                    user_id,
+                    `Tuve un problema para obtener el clima. Una disculpa.`
+                );
+            }
         }
-  	  });
-  }
+    );
+}
 
-  module.exports = {
-  	clima : clima,
-    ask_location: ask_location
-  }
+function subscribe_weather_service_intent(user_id) {
+    ask_location_weather_service(user_id);
+}
+
+function send_weather_service_messages(fireDate) {
+    console.log(`weather service fire date is ${fireDate}`);
+    db.select_many(undefined, `recordatorios`, (err, res) => {
+        if (!err) {
+            for (r of res) {
+                send_weather_service_info(r.user_id, r.lat, r.long);
+            }
+        }
+    });
+}
+
+function subscribe_weather_service(user_id, lat, long) {
+    db.insert(
+        { user_id: user_id, lat: lat, long: long },
+        `weatherservice`,
+        (err, res) => {
+            if (!err) fb.sendTextMessage(user_id, `Subscribed!`);
+        }
+    );
+}
+
+function ask_location_weather_service(user_id) {
+    db.update(
+        { _id: user_id },
+        { useLocationFor: "weatherservice" },
+        `users`,
+        (e, r) => {}
+    );
+    fb.askUserLocationMessage(
+        user_id,
+        `Share your location with me to subscribe to the weather service.`,
+        `climalocation`
+    );
+}
+
+function send_weather_service_info(user_id, lat, long) {
+    var options = {
+        method: "GET",
+        url: "https://community-open-weather-map.p.rapidapi.com/forecast",
+        qs: { units: "metric", lat: lat, lon: long, lang: "en" },
+        headers: {
+            "x-rapidapi-host": "community-open-weather-map.p.rapidapi.com",
+            "x-rapidapi-key":
+                "991117eb8bmsh35cc04757284cd4p1154a7jsn8b05153dde84",
+            useQueryString: true,
+        },
+    };
+    request(options, function (err, res, body) {
+        if (!err) {
+            try {
+                data = JSON.parse(body);
+                msg = format_weather_service_message(data);
+                fb.sendTextMessage(user_id, response);
+            } catch (err) {
+                fb.sendTextMessage(
+                    user_id,
+                    `Tuve un problema para obtener el clima. Una disculpa.`
+                );
+            }
+        } else {
+            fb.sendTextMessage(
+                user_id,
+                `Tuve un problema para obtener el clima. Una disculpa.`
+            );
+        }
+    });
+}
+
+function format_weather_service_message(data) {
+    let city_name = data.city.name;
+    let city_timezone = data.city.timezone;
+    let current_dt = data.list[0].dt;
+    let msg = format_weather_date_separation();
+    for (const weather_info of data.list) {
+        if (current_dt !== weather_info.dt) {
+            current_dt = weather_info.dt;
+            msg += format_weather_date_separation(current_dt, city_timezone);
+        }
+        msg += format_weather_hour_info(weather_info, city_timezone);
+    }
+
+    return `WEATHER SERVICE for ${city_name}\n"${msg}"`;
+}
+
+function format_weather_date_separation(dt, city_timezone) {
+    let day = "Today";
+    if (dt) {
+        let date = new Date(dt + city_timezone);
+        day = weekday[date.getDay()];
+    }
+    return `\n⌲⌲⌲${day}`;
+}
+
+function format_weather_hour_info(data, city_timezone) {
+    let date = new Date(data.dt + city_timezone);
+    let hour = date.getHours();
+    let degrees = data.main.temp;
+    let weather = `${data.weather[0].main}: ${data.weather[0].description}`;
+    return `\n${hour} · ${degrees}°C · ${weather}`;
+}
+
+module.exports = {
+    clima: clima,
+    ask_location: ask_location,
+    subscribe_weather_service,
+    subscribe_weather_service_intent,
+    send_weather_service_messages,
+};
