@@ -113,12 +113,9 @@ function format_weather_service_message(data) {
     ).getUTCDate();
     let msg = format_weather_date_separation();
     for (const weather_info of data.list) {
-        console.log(weather_info);
         let new_date = new Date(
             (weather_info.dt + city_timezone) * 1000
         ).getUTCDate();
-        console.log(current_dt);
-        console.log(new_date);
         if (current_dt != new_date) {
             current_dt = new_date;
             msg += format_weather_date_separation(
@@ -166,7 +163,6 @@ function test_weather_service() {
             try {
                 data = JSON.parse(body);
                 msg = format_weather_service_message(data);
-                console.log(msg);
             } catch (err) {
                 console.log(err);
             }
