@@ -106,37 +106,74 @@ function send_weather_service_info(user_id) {
 }
 
 function format_weather_service_message(data) {
-    console.log(data);
     let city_name = data.city.name;
     let city_timezone = data.city.timezone;
-    let current_dt = data.list[0].dt;
+    let current_dt = new Date(
+        (data.list[0].dt + city_timezone) * 1000
+    ).getUTCDate();
     let msg = format_weather_date_separation();
     for (const weather_info of data.list) {
-        if (current_dt !== weather_info.dt) {
-            current_dt = weather_info.dt;
-            msg += format_weather_date_separation(current_dt, city_timezone);
+        console.log(weather_info);
+        let new_date = new Date(
+            (weather_info.dt + city_timezone) * 1000
+        ).getUTCDate();
+        console.log(current_dt);
+        console.log(new_date);
+        if (current_dt != new_date) {
+            current_dt = new_date;
+            msg += format_weather_date_separation(
+                weather_info.dt,
+                city_timezone
+            );
         }
         msg += format_weather_hour_info(weather_info, city_timezone);
     }
 
-    return `WEATHER SERVICE for ${city_name}\n"${msg}"`;
+    return `WEATHER SERVICE for ${city_name}\n${msg}`;
 }
 
 function format_weather_date_separation(dt, city_timezone) {
     let day = "Today";
     if (dt) {
-        let date = new Date(dt + city_timezone);
-        day = weekday[date.getDay()];
+        let date = new Date((dt + city_timezone) * 1000);
+        day = weekday[date.getUTCDay()];
     }
     return `\n⌲⌲⌲${day}`;
 }
 
 function format_weather_hour_info(data, city_timezone) {
-    let date = new Date(data.dt + city_timezone);
-    let hour = date.getHours();
+    let date = new Date((data.dt + city_timezone) * 1000);
+    let hour = date.getUTCHours();
     let degrees = data.main.temp;
     let weather = `${data.weather[0].main}: ${data.weather[0].description}`;
     return `\n${hour} · ${degrees}°C · ${weather}`;
+}
+
+function test_weather_service() {
+    var options = {
+        method: "GET",
+        url: "https://community-open-weather-map.p.rapidapi.com/forecast",
+        qs: { q: "hamburg", units: "metric", lang: "en" },
+        headers: {
+            "x-rapidapi-host": "community-open-weather-map.p.rapidapi.com",
+            "x-rapidapi-key":
+                "991117eb8bmsh35cc04757284cd4p1154a7jsn8b05153dde84",
+            useQueryString: true,
+        },
+    };
+    request(options, function (err, res, body) {
+        if (!err) {
+            try {
+                data = JSON.parse(body);
+                msg = format_weather_service_message(data);
+                console.log(msg);
+            } catch (err) {
+                console.log(err);
+            }
+        } else {
+            console.log(err);
+        }
+    });
 }
 
 module.exports = {
@@ -144,4 +181,5 @@ module.exports = {
     ask_location: ask_location,
     subscribe_weather_service,
     send_weather_service_messages,
+    test_weather_service,
 };
