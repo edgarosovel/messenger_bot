@@ -58,6 +58,7 @@ function send_weather_service_messages(fireDate) {
         if (err) console.log(err);
         if (!err) {
             for (r of res) {
+                console.log(`sending weather service to ${r.user_id}`);
                 send_weather_service_info(r.user_id);
             }
         }
