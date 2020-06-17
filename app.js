@@ -23,8 +23,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // chron job for weather service
-// var j = schedule.scheduleJob("0 6 * * *", clima.send_weather_service_messages); // every day at 6 UTC
-var j = schedule.scheduleJob("* * * *", clima.send_weather_service_messages);
+var j = schedule.scheduleJob("0 6 * * *", clima.send_weather_service_messages); // every day at 6 UTC
+// var j = schedule.scheduleJob("* * * *", clima.send_weather_service_messages);
 
 //Servidor que se mantiene escuchando los mensajes
 app.listen(process.env.PORT || 1111, () =>
