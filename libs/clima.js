@@ -179,4 +179,5 @@ module.exports = {
     subscribe_weather_service,
     send_weather_service_messages,
     test_weather_service,
+    send_weather_service_info,
 };

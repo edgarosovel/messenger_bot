@@ -1,6 +1,5 @@
 const express = require("express");
 const request = require("request");
-var schedule = require("node-schedule");
 const path = require("path");
 const config = require("./config");
 const bodyParser = require("body-parser");
@@ -22,10 +21,6 @@ let app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// chron job for weather service
-var j = schedule.scheduleJob("0 6 * * *", clima.send_weather_service_messages); // every day at 6 UTC
-// var j = schedule.scheduleJob("* * * *", clima.send_weather_service_messages);
-
 //Servidor que se mantiene escuchando los mensajes
 app.listen(process.env.PORT || 1111, () =>
     console.log("Listening /messenger_bot")
@@ -45,6 +40,11 @@ app.get("/", function (req, res) {
         );
         res.sendStatus(403);
     }
+});
+
+app.post("/weather-service", function (req, res) {
+    clima.send_weather_service_messages();
+    res.sendStatus(200);
 });
 
 app.post("/", function (req, res) {
@@ -85,6 +85,7 @@ app.post("/", function (req, res) {
         res.sendStatus(200); //mandar dentro de 20 segundos, confirmando recepcion
     }
 });
+
 function info(user_id) {
     fb.sendTextMessage(
         user_id,
@@ -136,7 +137,8 @@ function handleMessage(event, user) {
                         gato.handler("gatointent", user);
                         break;
                     case "clima":
-                        clima.ask_location(user._id);
+                        // clima.ask_location(user._id); deprecated
+                        clima.send_weather_service_info(user._id);
                         break;
                     case "definir":
                         word = nlp.wikipedia_search_query
