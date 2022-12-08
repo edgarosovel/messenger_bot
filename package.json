@@ -24,7 +24,7 @@
   "homepage": "https://github.com/edgarosovel/messenger_bot#readme",
   "dependencies": {
     "body-parser": "^1.17.2",
-    "express": "^4.15.3",
+    "express": "^4.17.3",
     "mongodb": "^3.5.9",
     "request": "^2.83.0",
     "winston": "^2.3.1"
